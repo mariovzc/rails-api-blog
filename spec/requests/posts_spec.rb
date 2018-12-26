@@ -48,7 +48,7 @@ RSpec.describe 'Posts', type: :request do
       post '/posts', params: req_payload
       payload = JSON.parse(response.body)
       expect(payload).to_not be_empty
-      expect(payload['id']).to_not be_empty
+      expect(payload['id']).to_not be_nil
       expect(response).to have_http_status(:created)
     end
 
@@ -82,7 +82,7 @@ describe 'PUT /posts/{id}' do
     }
 
     #PUT HTTP
-    post "/posts/#{article.id}", params: req_payload
+    put "/posts/#{article.id}", params: req_payload
     payload = JSON.parse(response.body)
     expect(payload).to_not be_empty
     expect(payload['id']).to eq(article.id)
@@ -99,7 +99,7 @@ describe 'PUT /posts/{id}' do
     }
 
     #PUT HTTP
-    post "/posts/#{article.id}", params: req_payload
+    put "/posts/#{article.id}", params: req_payload
     payload = JSON.parse(response.body)
     expect(payload).to_not be_empty
     expect(payload['error']).to_not be_empty
