@@ -2,11 +2,26 @@ require 'rails_helper'
 
 RSpec.describe 'Posts', type: :request do
   describe 'GET /posts' do
-    before { get '/posts' }
     it 'should return ok' do
+      get '/posts'
       payload = JSON.parse(response.body)
       expect(payload).to be_empty
       expect(response).to have_http_status(200)
+    end
+
+    describe 'search' do
+      let!(:hello_world) { create(:published_post, title: 'Hola Mundo') }
+      let!(:hello_rails) { create(:published_post, title: 'Hola Rails') }
+      let!(:course_rails) { create(:published_post, title: 'Curso Rails') }
+
+      it 'should return post by title' do
+        get '/posts?search=Hola'
+        payload = JSON.parse(response.body)
+        expect(payload).to_not be_empty
+        expect(payload.size).to eq(2)
+        expect(payload.map { |p| p['id'] }.sort).to eq([hello_world.id, hello_rails.id].sort)
+        expect(response).to have_http_status(200)
+      end
     end
   end
 
