@@ -18,26 +18,28 @@ class PostsController < ApplicationController
     if !params[:search].nil? && params[:search].present?
       @posts = PostsSearchService.search(@posts, params[:search])
     end
-    render json: @posts.includes(:user),
-           status: :ok
+    render json: @posts.includes(:user), status: :ok
   end
 
   # GET /posts/{id}
   def show
     @post = Post.find(params[:id])
-    render json: @post,
-           status: :ok
+    if (@post.published? || (Current.user && @post.user_id === Current.user.id))
+      render json: @post, status: :ok
+    else
+      render json: { error: 'Not Found' }, status: :not_found
+    end
   end
 
   # POST /posts
   def create
-    @post = Post.create!(create_params)
+    @post = Current.user.posts.create!(create_params)
     render json: @post, status: :created
   end
 
   # PUT /posts/{id}
   def update
-    @post = Post.find(params[:id])    
+    @post = Current.user.posts.find(params[:id])    
     @post.update!(update_params)
     render json: @post, status: :ok
   end
@@ -45,7 +47,7 @@ class PostsController < ApplicationController
   private
 
   def create_params
-    params.require(:post).permit(:title, :content, :published, :user_id)
+    params.require(:post).permit(:title, :content, :published)
   end
 
   def update_params
@@ -64,6 +66,6 @@ class PostsController < ApplicationController
         return
       end
     end
-    render json {error: 'Unauthorized'}, status: :unauthorized
+    render json: { error: 'Unauthorized' }, status: :unauthorized
   end
 end
