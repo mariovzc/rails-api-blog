@@ -11,11 +11,11 @@ class PostReport < Struct.new(:word_count, :word_histogram)
 
   private
 
-  def count_words(post)
+  def self.count_words(post)
     post.content.split.map { |word| word.gsub(/\W/, '') }.count
   end
 
-  def calculate_histogram(post)
+  def self.calculate_histogram(post)
     (post
       .content
       .split
