@@ -1,4 +1,5 @@
 class PostsController < ApplicationController
+  include Secured
   before_action :authenticate_user!, only: [:create, :update]
 
   # Error handler, bottom up priority
@@ -7,7 +8,12 @@ class PostsController < ApplicationController
     render json: {error: e.message}, status: :internal_error
   end
 
-  # only active record validation execption
+  # not found exception
+  rescue_from ActiveRecord::RecordNotFound do |e|
+    render json: {error: e.message}, status: :not_found
+  end
+
+  # only active record validation exception
   rescue_from ActiveRecord::RecordInvalid do |e|
     render json: {error: e.message}, status: :unprocessable_entity
   end
@@ -52,20 +58,5 @@ class PostsController < ApplicationController
 
   def update_params
     params.require(:post).permit(:title, :content, :published)
-  end
-
-  def authenticate_user!
-    # Bearer xxxxx
-    token_regex = /Bearer (\w+)/
-    # read Auth Header
-    headers = request.headers
-    # validate header and token
-    if headers['Authorization'].present? && headers['Authorization'].match(token_regex)
-      token = headers['Authorization'].match(token_regex)[1]
-      if (Current.user = User.find_by_auth_token(token))
-        return
-      end
-    end
-    render json: { error: 'Unauthorized' }, status: :unauthorized
   end
 end
